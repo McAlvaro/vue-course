@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import ProgressBar from './ProgressBar.vue';
 import ListProjects from './ListProjects.vue';
 
@@ -17,7 +17,7 @@ function addUser() {
         completado: false
     };
     projects.value.push(projectObj);
-    console.log("Proyectos: ", projects);
+    saveData();
 
     project.value = "";
     priority.value = false;
@@ -26,6 +26,7 @@ function addUser() {
 
 function changeState(project, attribute) {
     project[attribute] = !project[attribute];
+    saveData();
 }
 
 const numberProjects = computed(() => {
@@ -38,11 +39,24 @@ const percentage = computed(() => {
 
     return Math.floor(((totalCompleted * 100) / numberProjects.value) * 100) / 100 || 0;
 });
+
+function saveData() {
+    localStorage.setItem("projects", JSON.stringify(projects.value));
+}
+
+function cleanProjects() {
+    projects.value = [];
+    localStorage.clear();
+}
+
+onMounted(() => {
+    projects.value = JSON.parse(localStorage.getItem("projects")) || [];
+});
 </script>
 <template>
     <div class="row">
         <div class="col-12 mb-4">
-            <ProgressBar :percentage="percentage" />
+            <ProgressBar :percentage="percentage" :cleanProjects="cleanProjects" />
         </div>
         <div class="col-12 col-md-4">
             <form @submit.prevent="addUser">
